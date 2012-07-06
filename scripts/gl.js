@@ -6,15 +6,19 @@ var webgl = {
 	shaderProgram: new Function(),
 	triangleVertexPositionBuffer: null,
 	squareVertexPositionBuffer: null,
+    lastTime: 0,
+    mvStack: new Array(),
+    rTri: 0,
+    rSquare: 0,
 	start: function() {
-		$('#c').attr('width',500).attr('height',500);
+		$('#c').attr('width',screen.width).attr('height',screen.height);
 		var c = $('#c')[0],t = this;
 		t.initGL(c);
-		t.initShaders(c);
-		t.initBuffers(c);
+		t.initShaders();
+		t.initBuffers();
 		t.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		t.gl.enable(t.gl.DEPTH_TEST);
-		t.drawScene();
+        t.animate();
 	},
 	initGL: function(c) {
 		try {
@@ -143,20 +147,57 @@ var webgl = {
         mat4.identity(t.mvMatrix);
 
         mat4.translate(t.mvMatrix, [-1.5, 0.0, -7.0]);
+
+        t.mvPushMatrix();      // It not relative by itself. (Hence we need the push-pop mechanism to get it back to its original state.)
+        mat4.rotate(t.mvMatrix,t.rTri,[0,1,0]);
         t.gl.bindBuffer(t.gl.ARRAY_BUFFER, t.triangleVertexPositionBuffer);
         t.gl.vertexAttribPointer(t.shaderProgram.vertexPositionAttribute, t.triangleVertexPositionBuffer.itemSize, t.gl.FLOAT, false, 0, 0);
         t.gl.bindBuffer(t.gl.ARRAY_BUFFER, t.triangleVertexColorBuffer);
         t.gl.vertexAttribPointer(t.shaderProgram.vertexColorAttribute, t.triangleVertexColorBuffer.itemSize, t.gl.FLOAT, false, 0, 0);
         t.setMatrixUniforms();
         t.gl.drawArrays(t.gl.TRIANGLES, 0, t.triangleVertexPositionBuffer.numItems);
+        t.mvPopStack();
 
 
         mat4.translate(t.mvMatrix, [3.0, 0.0, 0.0]);
+
+        t.mvPushMatrix();
+        mat4.rotate(t.mvMatrix,t.rSquare,[1,0,0]);
         t.gl.bindBuffer(t.gl.ARRAY_BUFFER, t.squareVertexPositionBuffer);
         t.gl.vertexAttribPointer(t.shaderProgram.vertexPositionAttribute, t.squareVertexPositionBuffer.itemSize, t.gl.FLOAT, false, 0, 0);
         t.gl.bindBuffer(t.gl.ARRAY_BUFFER, t.squareVertexColorBuffer);
         t.gl.vertexAttribPointer(t.shaderProgram.vertexColorAttribute, t.squareVertexColorBuffer.itemSize, t.gl.FLOAT, false, 0, 0);
         t.setMatrixUniforms();
         t.gl.drawArrays(t.gl.TRIANGLE_STRIP, 0, t.squareVertexPositionBuffer.numItems);
-	}
+        t.mvPopStack();
+	},
+    animate: function() {
+        var t = webgl;
+        requestAnimationFrame(t.animate);
+        t.drawScene();
+        t.changleAngle();
+    },
+    changleAngle: function() {
+        var timeNow = new Date().getTime(),t = this;
+        if (t.lastTime != 0) {
+            var elapsed = timeNow - t.lastTime;
+            t.rTri += ((90 * elapsed) / 1000.0).toRad();
+            t.rSquare += ((75 * elapsed) / 1000.0).toRad();
+        }
+        t.lastTime = timeNow;
+    },
+    mvPushMatrix: function() {
+        var c = mat4.create(),t = this;
+        mat4.set(t.mvMatrix,c);
+        t.mvStack.push(c);
+    },
+    mvPopStack: function() {
+        var t = this;
+        if (t.mvStack.length <= 0 ) throw "Invalid Pop.";
+        t.mvMatrix = t.mvStack.pop();
+    }
 }
+
+Number.prototype.toRad = function() {
+    return this * Math.PI/180;
+};
