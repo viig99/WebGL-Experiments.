@@ -6,7 +6,7 @@ This will contain my webGl experiments as per [these tutorials](http://learningw
 ###	TODO
 
 *	Wrap glMatrix under a namespace.
-* 	Move to Tutorial .
+* 	Move to Tutorial 3.
 
 <pre>
 	Finally Getting a hang of things.
