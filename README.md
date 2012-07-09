@@ -7,10 +7,12 @@ The Square Color is the base Color taken from [here](http://kuler.adobe.com/#the
 
 Added Animation to the Experiment and learnt why to save the matrix state during matrix operations.
 
+Introduced 3d elements to the scene using drawElements.
+
 ###	TODO
 
 *	Wrap glMatrix under a namespace.
-* 	Move to Tutorial 4.
+* 	Move to Tutorial 5.
 
 <pre>
 	Finally Getting a hang of things.
